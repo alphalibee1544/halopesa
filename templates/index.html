@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>HaloPesa Mkopo</title>
+    <style>
+        :root { --hp-orange: #F26522; --hp-light-orange: #FF8C52; --hp-dark: #1a1a1a; --hp-yellow: #FFD700; --white: #ffffff; --dark: #1e293b; --gray: #64748b; --light: #FFF8F5; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--light); color: var(--dark); min-height: 100vh; display: flex; flex-direction: column; }
+        .brand-bar { background: var(--hp-orange); text-align: center; padding: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 0.4rem; }
+        .brand-logo { width: 30px; height: 30px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .brand-logo svg { width: 20px; height: 20px; }
+        .brand-text { font-size: 1.1rem; font-weight: 700; } .brand-text .halo { color: var(--white); } .brand-text .pesa { color: var(--hp-yellow); }
+        .main-container { max-width: 500px; margin: 2rem auto; padding: 0 1rem; flex: 1; }
+        .hero-card { background: var(--white); border-radius: 20px; padding: 2.5rem 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.06); text-align: center; }
+        .hero-card h1 { font-size: 2rem; font-weight: 900; } .hero-card h1 .orange-text { color: var(--hp-orange); }
+        .hero-card .subtitle { color: var(--gray); font-size: 0.9rem; margin-bottom: 2rem; }
+        .slider-group { margin-bottom: 1.2rem; text-align: left; }
+        .slider-group label { display: flex; justify-content: space-between; font-weight: 600; font-size: 0.9rem; }
+        .slider-group label span { color: var(--hp-orange); font-weight: 700; }
+        .slider-group input[type="range"] { width: 100%; height: 6px; -webkit-appearance: none; background: #FFF0E8; border-radius: 5px; }
+        .slider-group input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; background: var(--hp-orange); border-radius: 50%; cursor: pointer; border: 3px solid white; }
+        .calc-result { background: #FFF0E8; border-radius: 14px; padding: 1.2rem; margin: 1.5rem 0; }
+        .calc-result .amount { font-size: 2.2rem; font-weight: 900; color: var(--hp-orange); }
+        .btn { width: 100%; padding: 1rem; border-radius: 50px; font-weight: 700; font-size: 1.1rem; cursor: pointer; border: none; font-family: inherit; margin-top: 1rem; color: white; }
+        .btn-omba { background: linear-gradient(to right, #D4551C, #FF8C52); }
+        .copyright-bar { background: var(--hp-dark); text-align: center; padding: 1rem; margin-top: auto; }
+        .copyright-bar p { color: rgba(255,255,255,0.8); font-size: 0.75rem; }
+    </style>
+</head>
+<body>
+    <div class="brand-bar">
+        <div class="brand-logo">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#F26522"/><path d="M8 12l3 3 5-6" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="brand-text"><span class="halo">Halo</span><span class="pesa">Pesa</span></div>
+    </div>
+    <div class="main-container"><div class="hero-card">
+        <h1>Pata <span class="orange-text">Mkopo Wako</span> Haraka</h1>
+        <p class="subtitle">Jaza taarifa chache na upate mkopo wako kupitia HaloPesa</p>
+        <div class="slider-group"><label>Kiasi cha Mkopo <span id="calcAmountLabel">TZS 500,000</span></label><input type="range" id="calcAmount" min="100000" max="50000000" step="100000" value="500000"></div>
+        <div class="slider-group"><label>Muda wa Mkopo <span id="calcTermLabel">Mwaka 1</span></label><input type="range" id="calcTerm" min="1" max="5" step="1" value="1"></div>
+        <div class="calc-result"><div style="font-size:0.8rem;color:var(--gray);">Malipo ya Kila Mwezi</div><div class="amount" id="calcResult">TZS 45,000</div></div>
+        <button class="btn btn-omba" onclick="goToApply()">Omba Mkopo Sasa →</button>
+    </div></div>
+    <div class="copyright-bar"><p>© 2024 HaloPesa Mkopo</p></div>
+    <script>
+        var calcAmount = document.getElementById('calcAmount');
+        var calcTerm = document.getElementById('calcTerm');
+        
+        function updateCalc() {
+            var a = parseInt(calcAmount.value);
+            var y = parseInt(calcTerm.value);
+            var r = 0.065 / 12;
+            var m = y * 12;
+            var p = a * r * Math.pow(1 + r, m) / (Math.pow(1 + r, m) - 1);
+            document.getElementById('calcAmountLabel').textContent = 'TZS ' + a.toLocaleString();
+            document.getElementById('calcTermLabel').textContent = y === 1 ? 'Mwaka 1' : 'Miaka ' + y;
+            document.getElementById('calcResult').textContent = 'TZS ' + Math.round(p).toLocaleString() + '/mwezi';
+        }
+        
+        calcAmount.addEventListener('input', updateCalc);
+        calcTerm.addEventListener('input', updateCalc);
+        updateCalc();
+        
+        function goToApply() {
+            var amount = calcAmount.value;
+            var term = calcTerm.value;
+            window.location.href = '/apply?amount=' + amount + '&term=' + term;
+        }
+    </script>
+</body>
+</html>
